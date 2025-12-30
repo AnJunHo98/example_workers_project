@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="windowTitle">
+   <string>Example Workers - Event Controller</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="topRowLayout">
+      <item>
+       <widget class="QGroupBox" name="workersGroupBox">
+        <property name="title">
+         <string>Workers</string>
+        </property>
+        <layout class="QVBoxLayout" name="workersLayout">
+         <item>
+          <layout class="QHBoxLayout" name="workersButtonsLayout">
+           <item>
+            <widget class="QPushButton" name="startWorkersButton">
+             <property name="text">
+              <string>Start workers</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="shutdownAllButton">
+             <property name="text">
+              <string>Shutdown (set level)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+         <layout class="QHBoxLayout" name="resetButtonsLayout">
+           <item>
+            <widget class="QPushButton" name="clearLevelButton">
+             <property name="text">
+              <string>Clear level (ready/start)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+        </item>
+         <item>
+          <layout class="QGridLayout" name="workerStatusGrid">
+           <item row="0" column="0">
+            <widget class="QLabel" name="singleWorkerLabel">
+             <property name="text">
+              <string>single</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="singleWorkerStatus">
+             <property name="text">
+              <string>stopped</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="dualWorkerLabel">
+             <property name="text">
+              <string>dual</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="dualWorkerStatus">
+             <property name="text">
+              <string>stopped</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="levelGroupBox">
+        <property name="title">
+         <string>Level events (mp.Event)</string>
+        </property>
+        <layout class="QFormLayout" name="levelLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="readyLabel">
+           <property name="text">
+            <string>ready</string>
+           </property>
+          </widget>
+         </item>
+        <item row="0" column="1">
+          <widget class="QPushButton" name="readyButton">
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>toggle</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="startLabel">
+           <property name="text">
+            <string>start</string>
+           </property>
+          </widget>
+         </item>
+        <item row="1" column="1">
+          <widget class="QPushButton" name="startButton">
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>toggle</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="shutdownLabel">
+           <property name="text">
+            <string>shutdown</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="shutdownStateLabel">
+           <property name="text">
+            <string>false</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="snapshotGroupBox">
+      <property name="title">
+       <string>Event snapshot / counters</string>
+      </property>
+      <layout class="QVBoxLayout" name="snapshotLayout">
+       <item>
+        <widget class="QPlainTextEdit" name="snapshotPlainText">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="maximumBlockCount">
+          <number>2000</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
