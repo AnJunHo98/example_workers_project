@@ -174,22 +174,19 @@ WORKER_SPECS = {
 
 ```python
 # sharedmemory/shm_schema.py
-from dataclasses import dataclass
 import numpy as np
 
-@dataclass
-class MY_DATA:
-    value: np.float32 = 0.0
-    counter: np.int32 = 0
-    timestamp: np.float64 = 0.0
+MY_DATA = [
+    ("value", (1,), np.float32),
+    ("counter", (1,), np.int32),
+    ("timestamp", (1,), np.float64),
+]
 
-# main.py에서 사용
-shm_name = {
-    "camera_shm": "camera_shm",
-    "my_data_shm": "my_data_shm",
-}
-
-main_shms = _init_shared_memory(shm_name, shared_lock)
+# SHM_SPECS에 등록하면 main.py/shm_init_clean.py가 자동으로 반영
+SHM_SPECS = (
+    # ... 기존 스펙들 ...
+    ShmSpec(key="my_data_shm", schema=MY_DATA, lock_key="my_data_lock"),
+)
 ```
 
 ### GUI 확장
