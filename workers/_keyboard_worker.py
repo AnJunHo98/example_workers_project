@@ -42,7 +42,7 @@ class KeyboardWorker(SingleRateWorker):
             self._fd = sys.stdin.fileno()
 
         self._old_attr = termios.tcgetattr(self._fd)
-        tty.setraw(self._fd)
+        tty.setcbreak(self._fd)
 
         logger.info(
             "\n[keyboard] keys: r(ready) s(start toggle) p(pause) q(quit)\n"
