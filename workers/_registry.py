@@ -27,13 +27,13 @@ def _build_keyboard(ctx: WorkerContext):
 def _build_single(ctx: WorkerContext):
     from workers._single_example import SingleExampleWorker
 
-    return SingleExampleWorker(ctx, hz=10.0)
+    return SingleExampleWorker(ctx, hz=100.0)
 
 
 def _build_dual(ctx: WorkerContext):
     from workers._dual_example import DualExampleWorker
 
-    return DualExampleWorker(ctx, slow_hz=10.0, fast_hz=10.0)
+    return DualExampleWorker(ctx, slow_hz=100.0, fast_hz=200.0)
 
 def _build_external(ctx: WorkerContext):
     from workers._single_example import SingleExampleWorker
@@ -48,7 +48,7 @@ WORKER_SPECS: Dict[str, WorkerSpec] = {
                        external=False, python=None),
     "keyboard": WorkerSpec(name="keyboard", builder=_build_keyboard, enabled=True, daemon=True, 
                            external=False, python=None),
-    "external": WorkerSpec(name="external",builder=_build_external,enabled=True,daemon=True, 
+    "external": WorkerSpec(name="external",builder=_build_external,enabled=False,daemon=True, 
                         external=True,python=".external/bin/python"),
 }
 
