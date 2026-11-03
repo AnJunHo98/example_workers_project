@@ -1,115 +1,112 @@
 # Example Workers Project (Single/Dual rate + unified events + event-driven state machine)
 
-멀티프로세스 워커 기반의 이벤트 드리븐 상태 머신 프레임워크입니다.
-모든 워커가 동일한 방식으로 이벤트를 읽고 상태를 전이할 수 있도록 설계되었습니다.
+English | [한국어](README.ko.md)
 
+An event-driven state machine framework built on multi-process workers. Every worker reads events and moves between states in the same way.
 
-## 🎯 주요 기능
+## Features
 
-### 1. 통일된 이벤트 시스템
-- **Level 이벤트**: `mp.Event` 기반 상태 유지 (ready, start, shutdown)
-- 모든 워커가 `EventBus.read_snapshot()`으로 일관된 방식으로 이벤트 읽음
-- OS 수준의 안전한 멀티프로세스 동기화
+### 1. Unified event system
+- **Level events** keep state with `mp.Event` (ready, start, shutdown)
+- Every worker reads events the same way, through `EventBus.read_snapshot()`
+- Safe multi-process synchronization at the OS level
 
-### 2. 워커 타입
-- **Single-rate Worker**: 고정 주기(Hz) 루프
-- **Dual-rate Worker**: 느린 루프(slow_hz) + 빠른 루프(fast_hz) 조합
-- **Keyboard Worker**: 콘솔 입력으로 이벤트 트리거
+### 2. Worker types
+- **Single-rate worker**: a loop at a fixed rate (Hz)
+- **Dual-rate worker**: a slow loop (`slow_hz`) combined with a fast loop (`fast_hz`)
+- **Keyboard worker**: triggers events from console input
 
-### 3. 상태 머신
-- 모든 워커가 공통 전이 함수 `core.state_machine.step()`를 사용
-- 이벤트 기반 상태 전이 (WAIT_CONNECT → WAIT_START → RUN/PAUSE → EXIT)
-- 워커 동작은 `step_once()`(single) 또는 `do_slow()`/`do_fast()`(dual)에서 구현
+### 3. State machine
+- Every worker uses the shared transition function `core.state_machine.step()`
+- Event-driven transitions (WAIT_CONNECT → WAIT_START → RUN/PAUSE → EXIT)
+- Worker behaviour goes in `step_once()` (single-rate) or `do_slow()` / `do_fast()` (dual-rate)
 
-### 4. Qt GUI 컨트롤러
-- 실시간 워커 상태 모니터링 (ALIVE/STOPPED)
-- 이벤트(ready, start, shutdown) 수동 제어
-- EventBus 레벨 스냅샷 표시
+### 4. Qt GUI controller
+- Live worker status (ALIVE/STOPPED)
+- Manual control of the events (ready, start, shutdown)
+- Shows the EventBus level snapshot
 
-### 5. 공유 메모리
-- 워커 간 고성능 데이터 공유
-- 스키마 기반 구조화된 메모리 관리
-- Lock 기반 동시성 제어
+### 5. Shared memory
+- Fast data sharing between workers
+- Structured memory defined by schemas
+- Lock-based concurrency control
 
-### 6. IPC 기반 확장성
-- 이벤트/데이터 통신을 IPC로 분리해 설계
-- 필요 시 동일 호스트의 서로 다른 Python 실행 환경(가상환경/컨테이너 등)에도 적용 가능하도록 확장 용이
+### 6. IPC-based extension
+- Event and data communication goes through IPC
+- Easy to extend to workers that run in a different Python environment (another venv, a container, ...) on the same host
 
-## 🚀 설치 및 실행
+## Installation and running
 
-### 가상환경 생성 (.init)
+### Create the main virtual environment (.init)
 ```bash
 python -m venv .init
 source .init/bin/activate
 ```
 
-### 외부 가상환경 생성 (.external)
+### Create the external virtual environment (.external)
 ```bash
 python -m venv .external
 ```
 
-### 필수 패키지 설치
+### Install the required packages
 ```bash
 pip install PyQt5 logging_mp numpy
-# 또는 PyQt6
+# or with PyQt6
 pip install PyQt6 logging_mp numpy
 ```
 
-### 프로젝트 실행
+### Run
 ```bash
 python main.py
 ```
 
-
-## 📁 프로젝트 구조
+## Repository layout
 
 ```
 example_workers_project/
-├── .external/                       # 외부 워커용 venv (직접 생성, git 제외)
-├── .init/                           # 메인 실행용 venv (직접 생성, git 제외)
-├── main.py                          # 런처(워커 시작, GUI 관리, cleanup)
+├── .external/                       # venv for external workers (create it yourself, git-ignored)
+├── .init/                           # venv for the main launcher (create it yourself, git-ignored)
+├── main.py                          # launcher (starts workers, manages the GUI, cleanup)
 ├── core/
 │   ├── __init__.py
-│   ├── events.py                    # EventBus, LEVEL_EVENTS 정의
-│   ├── rate.py                      # 고정 주기 루프 헬퍼
-│   ├── state_machine.py             # 공통 상태 전이(step) 정의
+│   ├── events.py                    # EventBus and LEVEL_EVENTS
+│   ├── rate.py                      # fixed-rate loop helper
+│   ├── state_machine.py             # shared state transition (step)
 │   └── worker_base.py               # WorkerContext, BaseWorker, SingleRateWorker, DualRateWorker
 ├── ipc/
 │   ├── __init__.py
-│   └── manager.py                   # IPC 매니저
+│   └── manager.py                   # IPC manager
 ├── workers/
 │   ├── __init__.py
-│   ├── _registry.py                 # 워커 레지스트리
-│   ├── _single_example.py           # Single-rate 워커 예제
-│   ├── _dual_example.py             # Dual-rate 워커 예제
-│   ├── _keyboard_worker.py          # 콘솔 입력 워커
-│   └── _run_external.py             # 외부 프로세스 워커 실행
+│   ├── _registry.py                 # worker registry
+│   ├── _single_example.py           # single-rate worker example
+│   ├── _dual_example.py             # dual-rate worker example
+│   ├── _keyboard_worker.py          # console input worker
+│   └── _run_external.py             # runs a worker in an external process
 ├── ui/
-│   ├── gui_controller.py            # Qt GUI 메인 컨트롤러
-│   └── gui.ui                       # Qt Designer 레이아웃
+│   ├── gui_controller.py            # main Qt GUI controller
+│   └── gui.ui                       # Qt Designer layout
 ├── sharedmemory/
 │   ├── __init__.py
-│   ├── shmManager.py                # 공유 메모리 관리자
-│   ├── shm_schema.py                # 메모리 스키마 정의(CAMERA 등)
-│   └── shm_init_clean.py            # 초기화/정리 함수
+│   ├── shmManager.py                # shared memory manager
+│   ├── shm_schema.py                # memory schemas (CAMERA, ...)
+│   └── shm_init_clean.py            # init/cleanup functions
 └── README.md
 ```
 
+## Concurrency and safety
 
+- **Level events**: OS-level synchronization through `mp.Event`
+- **Shared memory**: critical sections protected by locks
+- **Dual-rate worker**: state transitions are protected by an internal lock (use a separate lock for your own shared data)
+- **GUI**: thread safety through Qt signals and slots
+- **Watchdog**: a GUI timer checks worker status every 200 ms
 
-## 동시성 및 안전성
+## Customization
 
-- **Level 이벤트**: `mp.Event` 기반으로 OS 수준 동기화
-- **공유 메모리**: Lock 기반 임계 영역 보호
-- **Dual-rate Worker**: 상태 전이는 내부 lock으로 보호(사용자 공유 데이터는 별도 lock 권장)
-- **GUI**: Qt의 signal/slot 메커니즘으로 스레드 안전성 보장
-- **Watchdog**: GUI 타이머가 200ms 주기로 워커 상태 감시
+### Add a worker
 
-## 🔧 커스터마이징
-
-### 새 워커 추가하기
-
-**1단계: 워커 클래스 정의**
+**Step 1: define the worker class**
 ```python
 # workers/my_worker.py
 from core.worker_base import SingleRateWorker
@@ -121,14 +118,14 @@ logger = get_logger(__name__)
 class MyWorker(SingleRateWorker):
     def __init__(self, ctx, hz=10.0):
         super().__init__(ctx, hz=hz)
-    
+
     def step_once(self, ev, tr):
         if self.state == ModeState.RUN:
-            # 메인 로직 구현
+            # main logic
             logger.info("[MyWorker] Running...")
 ```
 
-**2단계: `workers/_registry.py`에 등록**
+**Step 2: register it in `workers/_registry.py`**
 ```python
 # workers/_registry.py
 def _build_my_worker(ctx: WorkerContext):
@@ -136,18 +133,17 @@ def _build_my_worker(ctx: WorkerContext):
     return MyWorker(ctx, hz=10.0)
 
 WORKER_SPECS: Dict[str, WorkerSpec] = {
-    # ... 기존 워커들
+    # ... existing workers
     "my_worker": WorkerSpec(name="my_worker", builder=_build_my_worker, enabled=True, daemon=True),
 }
 ```
-- `main.py`는 `workers/_registry.py`의 `WORKER_SPECS`를 읽어 워커를 시작합니다.
+- `main.py` reads `WORKER_SPECS` from `workers/_registry.py` and starts the workers.
 
-### 외부 프로세스 워커 사용
+### Run a worker in an external process
 
-외부 프로세스 워커는 다른 Python 실행 환경(예: `.external` venv)에서 실행되며,
-IPC를 통해 동일한 EventBus/Lock/SharedMemory에 연결됩니다.
+An external worker runs in another Python environment (for example the `.external` venv) and connects to the same EventBus, locks and shared memory through IPC.
 
-**1단계: 워커를 외부 프로세스로 지정**
+**Step 1: mark the worker as external**
 ```python
 # workers/_registry.py
 WORKER_SPECS = {
@@ -156,21 +152,20 @@ WORKER_SPECS = {
         builder=_build_external,
         enabled=True,
         daemon=True,
-        external=True,                # 외부 프로세스로 실행
-        python=".external/bin/python" # 실행할 파이썬 경로
+        external=True,                # run in an external process
+        python=".external/bin/python" # Python interpreter to use
     ),
 }
 ```
 
-**2단계: 외부 Python 환경에 의존성 설치**
-- `.external/` 환경에 필요한 패키지(PyQt, numpy 등) 설치
+**Step 2: install its dependencies in the external environment**
+- Install the packages it needs (PyQt, numpy, ...) into `.external/`
 
-**3단계: 실행**
-- `python main.py` 실행 시 IPC 매니저가 시작되고
-  `python -m workers._run_external ...` 방식으로 외부 워커가 자동 실행됩니다.
-- 외부로 지정된 워커는 main 프로세스에서는 실행되지 않습니다.
+**Step 3: run**
+- `python main.py` starts the IPC manager and launches the external worker with `python -m workers._run_external ...`.
+- A worker marked as external does not run inside the main process.
 
-### 공유 메모리 스키마 확장
+### Extend the shared memory schema
 
 ```python
 # sharedmemory/shm_schema.py
@@ -182,82 +177,77 @@ MY_DATA = [
     ("timestamp", (1,), np.float64),
 ]
 
-# SHM_SPECS에 등록하면 main.py/shm_init_clean.py가 자동으로 반영
+# Entries in SHM_SPECS are picked up automatically by main.py and shm_init_clean.py
 SHM_SPECS = (
-    # ... 기존 스펙들 ...
+    # ... existing specs ...
     ShmSpec(key="my_data_shm", schema=MY_DATA, lock_key="my_data_lock"),
 )
 ```
 
-### GUI 확장
+### Extend the GUI
 
-gui.ui를 Qt Designer로 열어 버튼, 레이블 등을 추가하고, `gui_controller.py`에서 신호 연결:
+Open `gui.ui` in Qt Designer to add buttons, labels and so on, then connect the signals in `gui_controller.py`:
 
 ```python
 # ui/gui_controller.py
 class EventControllerWindow(QtWidgets.QMainWindow):
     def __init__(self, bus, shared_memory):
         super().__init__()
-        # ... 기존 코드 ...
+        # ... existing code ...
         self.myButton.clicked.connect(self._on_my_button_clicked)
-    
+
     def _on_my_button_clicked(self) -> None:
-        # 새로운 이벤트 처리
+        # handle the new event
         self.bus.set_level("my_event")
 ```
 
-## ⚙️ 설정 옵션
+## Configuration
 
-### Worker 활성화/비활성화
+### Enable or disable workers
 
 ```python
 # workers/_registry.py
 WORKER_SPECS: Dict[str, WorkerSpec] = {
     "single": WorkerSpec(name="single", builder=_build_single, enabled=True, daemon=True),
-    "dual": WorkerSpec(name="dual", builder=_build_dual, enabled=False, daemon=True),  # 비활성
+    "dual": WorkerSpec(name="dual", builder=_build_dual, enabled=False, daemon=True),  # disabled
 }
 ```
 
-### Hz(주기) 조정
+### Change the rate (Hz)
 
 ```python
 # workers/_registry.py
 def _build_single(ctx: WorkerContext):
     from workers._single_example import SingleExampleWorker
-    return SingleExampleWorker(ctx, hz=20.0)  # 20Hz로 변경
+    return SingleExampleWorker(ctx, hz=20.0)  # 20 Hz
 
 def _build_dual(ctx: WorkerContext):
     from workers._dual_example import DualExampleWorker
-    return DualExampleWorker(ctx, slow_hz=5.0, fast_hz=50.0)  # 듀얼 레이트
+    return DualExampleWorker(ctx, slow_hz=5.0, fast_hz=50.0)  # dual rate
 ```
 
-## 📝 주요 설계 원칙
+## Design principles
 
-1. **단일 책임**: 각 워커는 하나의 책임만 수행
-2. **이벤트 기반**: 폴링이 아닌 이벤트 기반 상태 전이
-3. **스냅샷 기반**: 각 주기마다 현재 이벤트 상태의 스냅샷을 읽음
-4. **프로세스 격리**: 워커는 독립 프로세스로 실행되어 안정성 증대
-5. **메모리 안전**: 공유 메모리는 Lock으로 보호
-6. **GUI/워커 분리**: 워커는 별도 프로세스, GUI는 main 프로세스에서 EventBus 제어
-7. **간단함**: Level 이벤트만 사용하여 구조를 단순하게 유지
+1. **Single responsibility**: each worker does one job
+2. **Event-driven**: state changes are driven by events, not polling
+3. **Snapshots**: each cycle reads a snapshot of the current event state
+4. **Process isolation**: workers run as separate processes for stability
+5. **Memory safety**: shared memory is protected by locks
+6. **GUI/worker separation**: workers run in their own processes; the GUI controls the EventBus from the main process
+7. **Simplicity**: only level events, to keep the structure simple
 
-## 이 구조를 사용하는 저장소
+The same `core/`, `ipc/`, `sharedmemory/` and `workers/` skeleton is also used in some of the author's other (private) research projects.
 
-같은 `core/`, `ipc/`, `sharedmemory/`, `workers/` 워커 골격 위에 기능 워커를 추가한 저장소입니다.
+## References
 
-- `constraint_estimation`: SAM3·SAM 3D·FoundationPose·GPT 워커로 관절 물체 파트 포즈/관절 축 추정
-- `vlm_constraint_estimation`: LeRobot 시연 데이터의 VLM 기반 segment/articulation 제약 추정
+- [Python multiprocessing documentation](https://docs.python.org/3/library/multiprocessing.html)
+- [PyQt5 documentation](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
+- [Finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine)
 
-## 📚 참고 문서
+## Status
 
-- [Python multiprocessing 공식 문서](https://docs.python.org/3/library/multiprocessing.html)
-- [PyQt5 공식 문서](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
-- [상태 머신 패턴](https://en.wikipedia.org/wiki/Finite-state_machine)
+An example/template framework written between December 2025 and January 2026. There have been no commits since 2026-01-05.
 
-## 상태
+## License
 
-2025년 12월~2026년 1월에 작성된 예제/템플릿 프레임워크이며, 2026-01-05 이후 커밋은 없습니다.
-
-## 라이선스
-
-비공개 저장소이며 별도 라이선스 파일은 없습니다.
+MIT License — see [LICENSE](LICENSE).
