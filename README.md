@@ -65,15 +65,15 @@ python main.py
 
 ```
 example_workers_project/
-├── .external/                       # 로컬 venv (자동 생성)
-├── .init/                           # 초기화용 venv (자동 생성)
+├── .external/                       # 외부 워커용 venv (직접 생성, git 제외)
+├── .init/                           # 메인 실행용 venv (직접 생성, git 제외)
 ├── main.py                          # 런처(워커 시작, GUI 관리, cleanup)
 ├── core/
 │   ├── __init__.py
 │   ├── events.py                    # EventBus, LEVEL_EVENTS 정의
 │   ├── rate.py                      # 고정 주기 루프 헬퍼
 │   ├── state_machine.py             # 공통 상태 전이(step) 정의
-│   └── worker_base.py               # WorkerContext, BaseWorker, DualRateWorker
+│   └── worker_base.py               # WorkerContext, BaseWorker, SingleRateWorker, DualRateWorker
 ├── ipc/
 │   ├── __init__.py
 │   └── manager.py                   # IPC 매니저
@@ -128,19 +128,19 @@ class MyWorker(SingleRateWorker):
             logger.info("[MyWorker] Running...")
 ```
 
-**2단계: main.py에 등록**
+**2단계: `workers/_registry.py`에 등록**
 ```python
-# main.py
-from workers.my_worker import MyWorker
-
-def build_my_worker(ctx: WorkerContext) -> MyWorker:
+# workers/_registry.py
+def _build_my_worker(ctx: WorkerContext):
+    from workers.my_worker import MyWorker
     return MyWorker(ctx, hz=10.0)
 
-WORKER_SPECS: Dict[str, Dict[str, Any]] = {
-    "my_worker": {"builder": build_my_worker, "enabled": True, "daemon": True},
+WORKER_SPECS: Dict[str, WorkerSpec] = {
     # ... 기존 워커들
+    "my_worker": WorkerSpec(name="my_worker", builder=_build_my_worker, enabled=True, daemon=True),
 }
 ```
+- `main.py`는 `workers/_registry.py`의 `WORKER_SPECS`를 읽어 워커를 시작합니다.
 
 ### 외부 프로세스 워커 사용
 
@@ -211,19 +211,23 @@ class EventControllerWindow(QtWidgets.QMainWindow):
 ### Worker 활성화/비활성화
 
 ```python
-WORKER_SPECS: Dict[str, Dict[str, Any]] = {
-    "single": {"builder": build_single, "enabled": True, "daemon": True},
-    "dual": {"builder": build_dual, "enabled": False, "daemon": True},  # 비활성
+# workers/_registry.py
+WORKER_SPECS: Dict[str, WorkerSpec] = {
+    "single": WorkerSpec(name="single", builder=_build_single, enabled=True, daemon=True),
+    "dual": WorkerSpec(name="dual", builder=_build_dual, enabled=False, daemon=True),  # 비활성
 }
 ```
 
 ### Hz(주기) 조정
 
 ```python
-def build_single(ctx: WorkerContext) -> SingleExampleWorker:
+# workers/_registry.py
+def _build_single(ctx: WorkerContext):
+    from workers._single_example import SingleExampleWorker
     return SingleExampleWorker(ctx, hz=20.0)  # 20Hz로 변경
 
-def build_dual(ctx: WorkerContext) -> DualExampleWorker:
+def _build_dual(ctx: WorkerContext):
+    from workers._dual_example import DualExampleWorker
     return DualExampleWorker(ctx, slow_hz=5.0, fast_hz=50.0)  # 듀얼 레이트
 ```
 
@@ -237,8 +241,23 @@ def build_dual(ctx: WorkerContext) -> DualExampleWorker:
 6. **GUI/워커 분리**: 워커는 별도 프로세스, GUI는 main 프로세스에서 EventBus 제어
 7. **간단함**: Level 이벤트만 사용하여 구조를 단순하게 유지
 
+## 이 구조를 사용하는 저장소
+
+같은 `core/`, `ipc/`, `sharedmemory/`, `workers/` 워커 골격 위에 기능 워커를 추가한 저장소입니다.
+
+- `constraint_estimation`: SAM3·SAM 3D·FoundationPose·GPT 워커로 관절 물체 파트 포즈/관절 축 추정
+- `vlm_constraint_estimation`: LeRobot 시연 데이터의 VLM 기반 segment/articulation 제약 추정
+
 ## 📚 참고 문서
 
 - [Python multiprocessing 공식 문서](https://docs.python.org/3/library/multiprocessing.html)
 - [PyQt5 공식 문서](https://www.riverbankcomputing.com/static/Docs/PyQt5/)
 - [상태 머신 패턴](https://en.wikipedia.org/wiki/Finite-state_machine)
+
+## 상태
+
+2025년 12월~2026년 1월에 작성된 예제/템플릿 프레임워크이며, 2026-01-05 이후 커밋은 없습니다.
+
+## 라이선스
+
+비공개 저장소이며 별도 라이선스 파일은 없습니다.
